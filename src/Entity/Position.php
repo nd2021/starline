@@ -5,21 +5,24 @@ namespace StarLine\Entity;
 class Position
 {
     /**
-     * @var string широта
+     * @var float широта
      */
-    readonly string $x;
+    readonly float $x;
     /**
-     * @var string долгота
+     * @var float долгота
      */
-    readonly string $y;
+    readonly float $y;
     /**
-     * @var int точность в метрах (при определении местоположения объекта по базовым станциям GSM)
+     * @var ?int точность в метрах (при определении местоположения объекта по базовым станциям GSM)
      */
-    readonly int $r;
+    readonly ?int $r;
     /**
      * @var int скорость в км/ч
      */
     readonly int $s;
+    /**
+     * @var bool двигается ли устройство
+     */
     readonly bool $is_move;
     /**
      * @var int направление движения в градусах от 0 до 360 (0 – Север, 180 – Юг)

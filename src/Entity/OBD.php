@@ -9,10 +9,10 @@ class OBD
      */
     readonly float $fuel_litres;
     /**
-     * @var float количество топлива в литрах
+     * @var ?float количество топлива в литрах
      */
-    readonly float $fuel_percent;
-    readonly int $dist_to_empty;
+    readonly ?float $fuel_percent;
+    readonly ?int $dist_to_empty;
     /**
      * @var int Пробег автомобиля в километрах
      */

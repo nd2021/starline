@@ -4,5 +4,5 @@ namespace StarLine\Entity;
 
 class SysExtraState
 {
-    readonly string $tag_low_voltage;
+    readonly ?string $tag_low_voltage;
 }

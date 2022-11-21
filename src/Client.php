@@ -2,12 +2,17 @@
 
 namespace StarLine;
 
+use CuyZ\Valinor\Mapper\MappingError;
+use CuyZ\Valinor\Mapper\Source\Source;
+use CuyZ\Valinor\Mapper\TreeMapper;
+use CuyZ\Valinor\MapperBuilder;
 use Exception;
 use GuzzleHttp\Client as GClient;
+use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Request;
-use Psr\Http\Message\ResponseInterface;
-use StarLine\Objects\Device;
+use GuzzleHttp\RequestOptions;
+use StarLine\Entity\Device;
 
 class Client
 {
@@ -45,30 +50,42 @@ class Client
      *
      * @throws GuzzleException
      */
-    private function send(Request $request): ResponseInterface
+    private function request(Request $request): ?array
     {
         $c = new GClient([
-            'base_uri' => 'https://developer.starline.ru/'
+            'base_uri' => 'https://developer.starline.ru/',
+            'cookies' => true
         ]);
 
-        /** @var Request $request */
-        $request = $request->withHeader('Cookie', 'slnet=' . $this->config->getSlnetToken());
-
         // первый запрос
-        $response = $c->send($request);
-        if ($response->getStatusCode() === 200) {
-            return $response;
+        if ($result = $this->send($c, $request)) {
+            return $result;
         }
 
         // при ошибке пробуем авторизоваться и снова сделать запрос
         if ($this->is_authorized = Auth::auth($this->config)) {
-            $response = $c->send($request);
-            if ($response->getStatusCode() !== 200) {
-                $this->is_authorized = false;
+            if ($result = $this->send($c, $request)) {
+                return $result;
             }
         }
 
-        return $response;
+        $this->is_authorized = false;
+        return null;
+    }
+
+    private function send(GClient $client, Request $request)
+    {
+        $jar = CookieJar::fromArray([
+            'slnet' => $this->config->getSlnetToken()
+        ], 'developer.starline.ru');
+        $response = $client->send($request, [
+            RequestOptions::COOKIES => $jar
+        ]);
+        $result = json_decode($response->getBody()->getContents(), true);
+        if ($response->getStatusCode() === 200 && isset($result['code']) && $result['code'] === 200) {
+            return $result;
+        }
+        return null;
     }
 
     /**
@@ -83,12 +100,7 @@ class Client
         }
 
         $request = new Request('GET', '/json/v3/user/' . $this->config->getUserId() . '/data');
-        $response = $this->send($request);
-        if ($response->getStatusCode() !== 200) {
-            throw new Exception('Не удалось получить данные пользователя.');
-        }
-        $content = $response->getBody()->getContents();
-        $result = json_decode($content, true);
+        $result = $this->request($request);
 
         if (empty($result['user_data']['devices']) || !is_array($result['user_data']['devices'])) {
             throw new Exception('Получен неожиданный формат данных от API.');
@@ -109,9 +121,12 @@ class Client
 
             $devices = [];
             foreach ($user_data['user_data']['devices'] as $device_data) {
-                $devices[] = new Device($device_data);
+                $devices[] = $this->mapper()->map(
+                    Device::class,
+                    Source::array($device_data)
+                );
             }
-        } catch (Exception $e) {
+        } catch (MappingError|Exception $e) {
             $this->exception = $e;
             return null;
         } catch (GuzzleException $e) {
@@ -120,5 +135,18 @@ class Client
         }
 
         return $devices;
+    }
+
+    private function mapper(): TreeMapper
+    {
+        static $mapper = null;
+        if (is_null($mapper)) {
+            $mapper = (new MapperBuilder())
+                ->enableFlexibleCasting()
+                ->allowPermissiveTypes()
+//                ->allowSuperfluousKeys()
+                ->mapper();
+        }
+        return $mapper;
     }
 }

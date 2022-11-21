@@ -49,14 +49,14 @@ class State
      */
     readonly bool $arm;
     /**
-     * @var bool режим подтверждения авторизации (для устройств 6-го поколения)
+     * @var ?bool режим подтверждения авторизации (для устройств 6-го поколения)
      */
-    readonly bool $arm_auth_wait;
+    readonly ?bool $arm_auth_wait;
     /**
-     * @var bool режим запрета поездки (для устройств 6-го поколения)
+     * @var ?bool режим запрета поездки (для устройств 6-го поколения)
      */
-    readonly bool $arm_moving_pb;
-    readonly bool $superuser;
+    readonly ?bool $arm_moving_pb;
+    readonly ?bool $superuser;
     /**
      * @var bool (*) статус сервисного режима
      */
@@ -66,34 +66,34 @@ class State
      */
     readonly bool $out;
     /**
-     * @var bool режим программной нейтрали
+     * @var ?bool режим программной нейтрали
      */
-    readonly bool $neutral;
-    readonly int $dvr_timer;
-    readonly int $webasto_timer;
+    readonly ?bool $neutral;
+    readonly ?int $dvr_timer;
+    readonly ?int $webasto_timer;
     /**
      * @var bool (*) статус дистанционного запуска
      */
     readonly bool $r_start;
-    readonly int $r_start_timer;
+    readonly ?int $r_start_timer;
     /**
-     * @var bool состояние предпускового подогревателя
+     * @var ?bool состояние предпускового подогревателя
      */
-    readonly bool $webasto;
+    readonly ?bool $webasto;
 
     /**
      * @var bool (*) состояние дополнительного датчика
      */
     readonly bool $add_sens_bpass;
-    readonly bool $dvr;
+    readonly ?bool $dvr;
     /**
      * @var bool (*) состояние зажигания
      */
     readonly bool $run;
     /**
-     * @var bool состояние педали тормоза
+     * @var ?bool состояние педали тормоза
      */
-    readonly bool $pbrake;
+    readonly ?bool $pbrake;
 
     public $motohrs;
     public $hlock;

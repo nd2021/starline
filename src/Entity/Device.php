@@ -34,6 +34,9 @@ class Device
      * @var string версия ПО устройства
      */
     readonly string $firmware_version;
+    /**
+     * @var string тип батареи (volt)
+     */
     readonly string $battery_type;
     /**
      * @var int статус соединения с сервером (1 – online, 2 – offline)
@@ -41,40 +44,24 @@ class Device
     readonly int $status;
     readonly string $ua_url;
 
-    protected Position $position;
+    readonly Position $position;
 
     /**
      * @var Balance[]
      */
-    protected array $balance = [];
+    readonly array $balance;
     /**
      * @var string[] функции устройства
      */
-    protected array $functions = [];
-    protected array $reed_list = [];
+    readonly array $functions;
 
-    protected Event $event;
-    protected Common $common;
-    protected OBD $obd;
-    protected SysExtraState $tag_low_voltage;
-    protected RemoteStart $r_start;
+    readonly array $reed_list;
 
-    public $json = '{
-                "alarm_state": {
-                    "door": false,
-                    "shock_h": false,
-                    "hood": false,
-                    "ts": 1667848838,
-                    "hbrake": false,
-                    "shock_l": false,
-                    "add_h": false,
-                    "run": false,
-                    "add_l": false,
-                    "hijack": false,
-                    "tilt": false,
-                    "trunk": false,
-                    "pbrake": false
-                }
-            }';
-
+    readonly Event $event;
+    readonly Common $common;
+    readonly OBD $obd;
+    readonly SysExtraState $sys_extra_state;
+    readonly RemoteStart $r_start;
+    readonly State $state;
+    readonly AlarmState $alarm_state;
 }
