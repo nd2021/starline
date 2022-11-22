@@ -21,8 +21,12 @@ class Client
      */
     private ?bool $is_authorized = null;
 
-
     private ?Exception $exception = null;
+
+    /**
+     * @var array|null результат запроса, сохраняется при получении ответа от АПИ
+     */
+    private ?array $result = null;
 
     public function __construct(
         private readonly Config $config
@@ -46,67 +50,66 @@ class Client
     }
 
     /**
-     * Отправить запрос на API.
+     * Отправить запрос на API
      *
-     * @throws GuzzleException
+     * @param Request $request
+     * @return bool
      */
-    private function request(Request $request): ?array
+    private function request(Request $request): bool
     {
-        $c = new GClient([
-            'base_uri' => 'https://developer.starline.ru/',
-            'cookies' => true
-        ]);
-
         // первый запрос
-        if ($result = $this->send($c, $request)) {
-            return $result;
+        if ($this->send($request)) {
+            return true;
         }
 
         // при ошибке пробуем авторизоваться и снова сделать запрос
-        if ($this->is_authorized = Auth::auth($this->config)) {
-            if ($result = $this->send($c, $request)) {
-                return $result;
-            }
-        }
-
-        $this->is_authorized = false;
-        return null;
+        return ($this->is_authorized = Auth::auth($this->config)) && $this->send($request);
     }
 
-    private function send(GClient $client, Request $request)
+    private function send(Request $request): bool
     {
+        static $client = null;
+
+        if (is_null($client)) {
+            $client = new GClient([
+                'base_uri' => 'https://developer.starline.ru/'
+            ]);
+        }
         $jar = CookieJar::fromArray([
             'slnet' => $this->config->getSlnetToken()
         ], 'developer.starline.ru');
+
         $response = $client->send($request, [
             RequestOptions::COOKIES => $jar
         ]);
         $result = json_decode($response->getBody()->getContents(), true);
-        if ($response->getStatusCode() === 200 && isset($result['code']) && $result['code'] === 200) {
-            return $result;
+        if ($response->getStatusCode() === 200 && is_array($result)) {
+            $this->result = $result;
+            return isset($result['code']) && $result['code'] === 200;
         }
-        return null;
+        $this->result = null;
+        return false;
     }
 
     /**
-     * @return array
-     * @throws GuzzleException
+     * @return array|null
      * @throws Exception
      */
-    private function getUserData(): array
+    private function getUserData(): ?array
     {
         if (!$this->isReady()) {
             throw new Exception('Нельзя произвести запрос. Авторизация невозможна.');
         }
 
         $request = new Request('GET', '/json/v3/user/' . $this->config->getUserId() . '/data');
-        $result = $this->request($request);
 
-        if (empty($result['user_data']['devices']) || !is_array($result['user_data']['devices'])) {
-            throw new Exception('Получен неожиданный формат данных от API.');
+        if ($this->request($request)) {
+            if (empty($this->result['user_data']['devices']) || !is_array($this->result['user_data']['devices'])) {
+                throw new Exception('Получен неожиданный формат данных от API.');
+            }
         }
 
-        return $result;
+        return $this->result;
     }
 
     /**
@@ -118,13 +121,14 @@ class Client
     {
         try {
             $user_data = $this->getUserData();
-
-            $devices = [];
-            foreach ($user_data['user_data']['devices'] as $device_data) {
-                $devices[] = $this->mapper()->map(
-                    Device::class,
-                    Source::array($device_data)
-                );
+            if ($user_data) {
+                $devices = [];
+                foreach ($user_data['user_data']['devices'] as $device_data) {
+                    $devices[] = $this->mapper()->map(
+                        Device::class,
+                        Source::array($device_data)
+                    );
+                }
             }
         } catch (MappingError|Exception $e) {
             $this->exception = $e;
