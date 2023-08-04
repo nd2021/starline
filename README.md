@@ -20,7 +20,7 @@ use StarLine\Config;
 
 $config = new Config();
 
-$config->setAppId('yoy-app-id')
+$config->setAppId('you-app-id')
     ->setAppSecret('you-app-secret')
     ->setLogin('you-login')
     ->setPassword('you-password');
