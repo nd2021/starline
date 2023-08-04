@@ -29,4 +29,8 @@ class Balance
      */
     readonly string $operator;
     readonly int $ts;
+
+    readonly string $number;
+
+    readonly int $slot;
 }

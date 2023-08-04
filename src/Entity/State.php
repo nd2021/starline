@@ -98,4 +98,8 @@ class State
     public $motohrs;
     public $hlock;
     readonly int $ts;
+
+    readonly ?bool $stay_home;
+
+    readonly ?bool $relay;
 }

@@ -5,13 +5,13 @@ namespace StarLine\Entity;
 class OBD
 {
     /**
-     * @var float количество топлива в литрах
+     * @var ?int количество топлива в литрах
      */
-    readonly float $fuel_litres;
+    readonly ?int $fuel_litres;
     /**
-     * @var ?float количество топлива в литрах
+     * @var ?int количество топлива в литрах
      */
-    readonly ?float $fuel_percent;
+    readonly ?int $fuel_percent;
     readonly ?int $dist_to_empty;
     /**
      * @var int Пробег автомобиля в километрах

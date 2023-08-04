@@ -34,4 +34,10 @@ class Common
     readonly string $battery_type;
     readonly int $reg_date;
     readonly int $ts;
+
+    readonly ?int $heater_liquid_temp;
+
+    readonly ?int $motohours_reset_ts;
+
+    readonly ?int $heater_air_temp;
 }
