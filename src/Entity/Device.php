@@ -64,4 +64,8 @@ class Device
     readonly RemoteStart $r_start;
     readonly State $state;
     readonly AlarmState $alarm_state;
+
+    readonly bool $slm_mode;
+
+    readonly ElectricStatus $electric_status;
 }
